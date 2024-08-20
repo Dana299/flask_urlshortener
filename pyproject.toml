@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "flask-urlshorterner"
+version = "0.1.0"
+description = ""
+authors = ["Dana299 <gorevadana@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+flask = "^3.0.3"
+pydantic = "^2.8.2"
+redis = "^5.0.8"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
