@@ -3,13 +3,13 @@ from typing import Optional
 
 from pydantic import HttpUrl
 
-from src.clients.redis_client import RedisClient
+from src.clients.abstract_client import AbstractClient
 from src.models.urls import Url
 
 
 class UrlRepository:
 
-    def __init__(self, redis_client: RedisClient, service_base_url: str):
+    def __init__(self, redis_client: AbstractClient, service_base_url: str):
         self.redis_client = redis_client
         self.service_base_url = service_base_url
 
@@ -17,11 +17,13 @@ class UrlRepository:
         collision = True
         while collision:
             key = self._generate_hash(str(url), min_key_len)
-            collision = bool(self.redis_client.get_dict_by_key(key))
+            existing_url = self.redis_client.get(key)
+            collision = bool(existing_url) and existing_url["full_url"] != str(url)
             min_key_len += 1
+
         short_url = f"{self.service_base_url}/{key}"
         url_object = Url(url_key=key, full_url=url, short_url=short_url)
-        url = self.redis_client.set_dict_with_ttl(
+        url = self.redis_client.set(
             key,
             {k: str(v) for k, v in url_object.model_dump().items()},
             ttl=None
@@ -29,7 +31,7 @@ class UrlRepository:
         return url_object
 
     def get_url_by_key(self, key: str) -> Optional[str]:
-        url_data = self.redis_client.get_dict_by_key(key)
+        url_data = self.redis_client.get(key)
         if url_data:
             url_object = Url(**url_data)
             return url_object.full_url

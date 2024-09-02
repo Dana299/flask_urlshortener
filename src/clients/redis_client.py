@@ -2,10 +2,11 @@ from typing import Optional
 
 import redis
 
+from src.clients.abstract_client import AbstractClient
 from src.exceptions import RedisConnectionError
 
 
-class RedisClient:
+class RedisClient(AbstractClient):
 
     def __init__(self, redis_dsn: str):
         self.redis_dsn = redis_dsn
@@ -19,7 +20,7 @@ class RedisClient:
             except redis.ConnectionError:
                 raise
 
-    def set_dict_with_ttl(self, key: str, mapping: dict, ttl: Optional[int] = None):
+    def set(self, key: str, mapping: dict, ttl: Optional[int] = None):
         """Set a dict in the hash with a TTL (time to live)."""
         if not self.conn:
             raise RedisConnectionError("No connection with redis established")
@@ -27,7 +28,7 @@ class RedisClient:
         if ttl:
             self.conn.expire(key, ttl)
 
-    def get_dict_by_key(self, key: str):
+    def get(self, key: str):
         """Get the value in a hash stored at key."""
         if not self.conn:
             raise RedisConnectionError("No connection with redis established")
